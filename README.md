@@ -322,16 +322,14 @@ because systematic error cancels.
 | 5 — the mask reaches the denoiser aligned | commanded-vs-realised PBL correlation > 0.5 | **PASS** (+0.922) |
 
 [![Four rows of four panels: mask, generated image, and a difference/edge map for a 16-patch overfit run, each generated sample visibly matching one specific training patch](figs/a3_gate4.png)](figs/a3_gate4.png)
-*Gate 4: samples from a model trained to overfit 16 patches. Each one is visually traceable back to its source patch — proof the conditioning pathway actually carries information, before a single full-scale run is spent.*
+*Sanity check 4: samples from a model trained to overfit 16 patches. Each one is visually traceable back to its source patch — proof the conditioning pathway actually carries information, before a single full-scale run is spent.*
 
 [![Four mask panels (Mild/Moderate) each labelled with both the keypoint-derived PBL and the mask-derived PBL, matching to within 0.01–0.02](figs/b4_gate5.png)](figs/b4_gate5.png)
-*Gate 3 in miniature: keypoint PBL vs. mask PBL, side by side, before a single training run is launched on top of these masks.*
+*Sanity check 3 in miniature: keypoint PBL vs. mask PBL, side by side, before a single training run is launched on top of these masks.*
 
-Sanity check 2b failed at 0.706 against a 0.75 target set before the run. It was **not** chased: by then the
+Sanity check 2b failed at 0.706 against a 0.75 target set before the run. It was not chased , bacause by then the
 bottleneck had measurably moved to the diffusion, and the VAE round-trip was shown to cost only 0.008
-Dice. Gate 5's *first* criterion was mine and was badly designed — it was rewritten around a quantity
-that could actually discriminate, and the rule that came out of it (verify the achievable maximum
-before fixing a threshold) shaped every later gate.
+Dice.
 
 * * *
 
@@ -347,7 +345,7 @@ Crucially, the round-trip costs almost nothing anatomically: Dice on exposed roo
 PBL bias +0.0004 → **+0.0047**. The autoencoder is not the bottleneck.
 
 [![Three training curves: L1 reconstruction loss dropping sharply then flattening once the adversarial term switches on at step 3000; Gate 2b's HF retention rising and LPIPS falling after step 3000; the disc hinge/separation showing the adversarial game is live, not dead](figs/a7_vae_train.png)](figs/a7_vae_train.png)
-*VAE training: reconstruction loss, the Gate 2b diagnostics (HF retention, LPIPS) before and after the adversarial term switches on at step 3000, and the adversarial game itself.*
+*VAE training: reconstruction loss, the Sanity check 2b diagnostics (HF retention, LPIPS) before and after the adversarial term switches on at step 3000, and the adversarial game itself.*
 
 [![Eight VAE round-trip probes across the PBL range: real image, reconstruction, and a difference map with the crest line marked, with the reconstruction/real ratio annotated per patch](figs/a1_vae_probe.png)](figs/a1_vae_probe.png)
 *VAE round-trip probe across the PBL range — real | reconstruction | difference, crest line marked. The anatomy that matters survives compression essentially intact.*
@@ -395,17 +393,17 @@ of latent-from-scratch against latent-finetuned is informative.
 Classifier-free guidance **does not help here and actively hurts**: everything degrades monotonically
 above `w = 1`, and FID with it. This is a negative result that was hypothesised twice as a fix and
 refuted twice. Diversity barely moves (0.454–0.488 against 0.551 for real TEST patches), so there is no
-fidelity/diversity trade-off curve to draw — the trade-off the brief expects does not exist in this
+fidelity/diversity trade-off curve to draw: the trade-off the brief expects does not exist in this
 regime, and saying so is more useful than drawing a curve that isn't there.
 
 [![Five commanded masks each with three independently sampled generations, showing consistent gross structure but different fine detail/noise texture](figs/b5_faithfulness.png)](figs/b5_faithfulness.png)
-*Within-mask diversity: three samples per commanded mask. Structure is consistent across samples; the diversity that exists is in texture, not in anatomy — consistent with the LPIPS numbers above.*
+*Within-mask diversity: three samples per commanded mask. Structure is consistent across samples; the diversity that exists is in texture, not in anatomy,consistent with the LPIPS numbers above.*
 
 ### The counterfactual — does the command carry off-distribution?
 
 16 teeth × 5 commanded PBL values spanning 0.10–0.85, on masks whose severity the model has essentially
-never seen. The retargeted masks are checked first — PBL is read back out of them and compared with what was
-commanded (printed by the retargeting cell) — so any failure below belongs to the generator.
+never seen. The retargeted masks are checked first: PBL is read back out of them and compared with what was
+commanded (printed by the retargeting cell), so any failure below belongs to the generator.
 
 ```
 model                  judge     within-tooth r    slope   monotone
@@ -419,7 +417,7 @@ pixel + anatomic       S_eval2           +0.585    0.259      8/16
 *The counterfactual, qualitatively: same tooth, five commanded severities from 0.10 to 0.85. The mask changes drastically; the generated tooth mostly does not.*
 
 [![Twenty-four patches sorted by within-tooth commanded-vs-realized correlation, from -0.75 to +0.04 — almost none reach a positive, let alone strong, correlation](figs/a5_failures.png)](figs/a5_failures.png)
-*Per-tooth counterfactual correlation, sorted. Most teeth show a flat or *negative* response to the commanded severity — the visual form of "no model obeys".*
+*Per-tooth counterfactual correlation, sorted. Most teeth show a flat or *negative* response to the commanded severity.*
 
 **No model obeys.** The best slope in the entire table is 0.380 — 62% of the command ignored. The
 constraint changes the *shape* of the failure rather than removing it: the constrained pixel model is
@@ -466,12 +464,12 @@ G_px  - B_px (filtered)          +0.004 +- 0.025      3/5
 ```
 
 [![Four bar charts: paired per-seed delta mAP and delta AP-on-Advanced against a real-only baseline for every arm (top row, all positive-leaning), and the same for the controlled guidance/labelling contrasts (bottom row, mixed sign, mostly near zero)](figs/c3_downstream.png)](figs/c3_downstream.png)
-*H2 in full: every synthetic arm beats real-only by a small, mostly-positive margin (top row); the controlled contrasts that isolate guidance or labelling collapse toward zero with error bars that straddle it (bottom row) — "helps a little, guidance adds nothing detectable" in one figure.*
+*H2 in full: every synthetic arm beats real-only by a small, mostly-positive margin (top row); the controlled contrasts that isolate guidance or labelling collapse toward zero with error bars that straddle it (bottom row).*
 
 Synthetic data helps a little and consistently in direction (+0.023 to +0.037 mAP across all four
 banks). **The anatomical guidance contributes nothing detectable**, with intent labels or measured
 ones. And the gain does not track rare-case content at all: `G_px` adds 170 genuinely Advanced patches
-— 2.3× the 75 real ones in TRAIN — and does no better than a bank with 48.
+— 2.3× the 75 real ones in TRAIN, and does no better than a bank with 48.
 
 The reason is structural, not statistical. TEST holds **24** Advanced teeth; one tooth moving sides
 shifts AP by ~4 points, twice the effect being looked for. All seeds see the same TEST, so more seeds
@@ -508,8 +506,7 @@ real = ceiling                     0.8066      0.9067    0.0428  +0.0059   +0.75
 ### Why does the gap survive? — a probe of the latent's geometry
 
 Each TEST patch is interpolated towards the **same** partner patch, in both spaces, and two quantities
-are measured: how much the *image* changed, and how much the *anatomy* changed. No training, no
-generative model — a statement about the space, not about our models.
+are measured: how much the *image* changed, and how much the *anatomy* changed.
 
 ```
   eps    space     visible dL1   |dPBL|   dPBL/dL1
@@ -530,13 +527,8 @@ the disproportion the hypothesis predicted. But the factor is **1.4**, and the o
 more anatomically brittle, and the dominant term is simply that latent diffusion lands further from the
 real manifold to begin with (FID 249.9 vs 139.8).
 
-This matters for what to try next: an anatomy-supervised autoencoder — the fix the literature proposes
-([Anatomically Guided Latent Diffusion](https://arxiv.org/html/2601.14584),
-[Anatomy-Preserving Latent Diffusion](https://arxiv.org/html/2602.10167)) — attacks the *secondary*
-cause. Worth doing, with that expectation rather than a promise.
-
 [![A 6x8 grid of 48 generated patches, unguided, showing a range of tooth shapes, root counts, and bone-loss levels](figs/a5_catalogue.png)](figs/a5_catalogue.png)
-*A catalogue of 48 unguided generations — the qualitative counterpart to every FID number in this document.*
+*A catalogue of 48 unguided generations.*
 
 * * *
 
@@ -559,7 +551,7 @@ cause. Worth doing, with that expectation rather than a promise.
   evaluators contradict each other on the severe tail. Not that the data is poor; we cannot label it.
 
   [![Eight auxiliary patches sorted by S_eval-read PBL from 0.84 down to 0.70, most too low-contrast or oddly framed for the segmenter to read confidently](figs/d9_aux_pbl.png)](figs/d9_aux_pbl.png)
-  *`S_eval` applied to auxiliary patches — the domain gap that ruled this data out as a training-set extension.*
+  *`S_eval` applied to auxiliary patches*
 
 - **`Severe` is 3 teeth, so the 4-way stage axis is reported but never used as a training target.**
 
